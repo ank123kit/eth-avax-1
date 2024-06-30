@@ -1,0 +1,47 @@
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.0;
+
+contract SimpleToken {
+    mapping(address => uint) public balances;
+    address public owner;
+
+    event Transfer(address indexed from, address indexed to, uint amount);
+
+    constructor() {
+        owner = msg.sender;
+        balances[owner] = 10000; // Initial supply for the owner
+    }
+
+    // Function to check the balance of an address
+    function checkBalance(address _address) public view returns (uint) {
+        return balances[_address];
+    }
+
+    // Function to transfer tokens
+    function transfer(address _to, uint _amount) public {
+        // Ensure the sender has enough balance
+        require(balances[msg.sender] >= _amount, "Not enough balance");
+
+        // Update balances
+        balances[msg.sender] -= _amount;
+        balances[_to] += _amount;
+
+        emit Transfer(msg.sender, _to, _amount);
+
+        // Assert the invariant that the sum of balances should not change
+        assert(balances[msg.sender] + balances[_to] == 10000);
+    }
+
+    // Function to add tokens to an address (only owner can do this)
+    function mint(address _to, uint _amount) public {
+        // Only the owner can mint new tokens
+        if (msg.sender != owner) {
+            revert("Only the owner can mint new tokens");
+        }
+
+        balances[_to] += _amount;
+
+        // Assert the invariant that the owner cannot mint negative amount
+        assert(balances[_to] >= _amount);
+    }
+}
